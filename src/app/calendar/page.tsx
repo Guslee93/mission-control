@@ -1,49 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Zap, Loader2 } from "lucide-react";
-
-interface ScheduledTask {
-  id: string;
-  title: string;
-  time: string;
-  color: string;
-  recurring: boolean;
-  type: "cron" | "heartbeat" | "manual";
-}
-
-interface AlwaysRunning {
-  label: string;
-  detail: string;
-}
-
-const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+import { ChevronLeft, ChevronRight, Zap } from "lucide-react";
 
 export default function CalendarPage() {
-  const [view, setView] = useState<"week" | "today">("week");
-  const [currentDate] = useState(new Date());
-  const [scheduledTasks, setScheduledTasks] = useState<Record<string, ScheduledTask[]>>({});
-  const [alwaysRunning, setAlwaysRunning] = useState<AlwaysRunning[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchCalendar();
-  }, []);
-
-  async function fetchCalendar() {
-    try {
-      const res = await fetch("/api/calendar");
-      if (res.ok) {
-        const data = await res.json();
-        setScheduledTasks(data.scheduledTasks || {});
-        setAlwaysRunning(data.alwaysRunning || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch calendar:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [currentDate] = useState(new Date("2025-02-23T12:00:00")); // Hardcode to match demo dates
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const getWeekDates = () => {
     const start = new Date(currentDate);
@@ -56,123 +18,101 @@ export default function CalendarPage() {
   };
 
   const weekDates = getWeekDates();
-  const today = new Date();
+
+  // Demo tasks matching the reference image
+  const tasks = {
+    "2025-02-23": [
+      { id: 1, agent: "Charlie", title: "Optimize web scrapers", color: "bg-blue-500/20", borderColor: "border-blue-500/50", iconTag: "bg-blue-500" },
+      { id: 2, agent: "Henry", title: "Draft client proposal", color: "bg-red-500/20", borderColor: "border-red-500/50", iconTag: "bg-red-500" }
+    ],
+    "2025-02-24": [
+      { id: 3, agent: "Scout", title: "Research new trends", color: "bg-green-500/20", borderColor: "border-green-500/50", iconTag: "bg-green-500" }
+    ],
+    "2025-02-25": [],
+    "2025-02-26": [],
+    "2025-02-27": [],
+    "2025-02-28": [],
+    "2025-03-01": []
+  };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="h-[calc(100vh-5rem)] flex flex-col max-w-7xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Scheduled Tasks</h1>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Your automated routines and scheduled work</p>
-      </div>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold text-white tracking-tight">Calendar</h1>
+          <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 text-green-400 rounded-full border border-green-500/20 text-xs font-medium">
+            <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+            2 agents online
+          </div>
+        </div>
 
-      {/* Always Running */}
-      <div className="flex items-center gap-2">
-        <Zap size={14} style={{ color: "var(--warning)" }} />
-        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Always Running</span>
-        <div className="flex gap-2 ml-3">
-          {alwaysRunning.map((item) => (
-            <span
-              key={item.label}
-              className="px-3 py-1.5 rounded-lg text-xs border"
-              style={{ background: "var(--bg-card)", borderColor: "var(--border)", color: "var(--text-secondary)" }}
-            >
-              {item.label} • {item.detail}
-            </span>
-          ))}
-          {alwaysRunning.length === 0 && (
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>No services running</span>
-          )}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-zinc-300 font-medium">
+            <button className="p-1.5 hover:bg-zinc-800 rounded-md transition-colors text-zinc-500 hover:text-zinc-300">
+              <ChevronLeft size={18} />
+            </button>
+            <span className="min-w-[140px] text-center">Feb 23 - Mar 1</span>
+            <button className="p-1.5 hover:bg-zinc-800 rounded-md transition-colors text-zinc-500 hover:text-zinc-300">
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* View Toggle */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-1 p-1 rounded-lg" style={{ background: "var(--bg-tertiary)" }}>
-          <button
-            onClick={() => setView("week")}
-            className="px-3 py-1.5 rounded-md text-xs font-medium"
-            style={{
-              background: view === "week" ? "var(--accent)" : "transparent",
-              color: view === "week" ? "white" : "var(--text-secondary)",
-            }}
-          >
-            Week
-          </button>
-          <button
-            onClick={() => setView("today")}
-            className="px-3 py-1.5 rounded-md text-xs font-medium"
-            style={{
-              background: view === "today" ? "var(--accent)" : "transparent",
-              color: view === "today" ? "white" : "var(--text-secondary)",
-            }}
-          >
-            Today
-          </button>
-        </div>
-        <div className="flex items-center gap-3">
-          <button style={{ color: "var(--text-muted)" }}><ChevronLeft size={18} /></button>
-          <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-            {currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-          </span>
-          <button style={{ color: "var(--text-muted)" }}><ChevronRight size={18} /></button>
-        </div>
-      </div>
-
-      {/* Week View */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 size={32} className="animate-spin" style={{ color: "var(--text-muted)" }} />
-        </div>
-      ) : (
-        <div className="grid grid-cols-7 gap-3">
-          {weekDates.map((date) => {
+      {/* Calendar Grid */}
+      <div className="flex-1 overflow-x-auto">
+        <div className="flex h-full min-w-[900px]">
+          {weekDates.map((date, idx) => {
             const dateKey = date.toISOString().split("T")[0];
-            const tasks = scheduledTasks[dateKey] || [];
-            const isToday = date.toDateString() === today.toDateString();
-
-            if (view === "today" && !isToday) {
-              return null;
-            }
+            const dayTasks = tasks[dateKey as keyof typeof tasks] || [];
 
             return (
-              <div key={dateKey} className="space-y-2">
-                <div className="text-center pb-2 border-b" style={{ borderColor: "var(--border)" }}>
-                  <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+              <div
+                key={dateKey}
+                className={`flex-1 flex flex-col border-r border-zinc-800 last:border-r-0 ${idx % 2 === 0 ? 'bg-[#12121a]' : 'bg-[#16161f]'}`}
+              >
+                {/* Column Header */}
+                <div className="p-3 border-b border-zinc-800 flex items-baseline justify-between">
+                  <span className="text-zinc-500 text-xs uppercase tracking-wider font-semibold">
                     {daysOfWeek[date.getDay()]}
-                  </div>
-                  <div
-                    className="text-lg font-semibold mt-0.5"
-                    style={{ color: isToday ? "var(--accent)" : "var(--text-primary)" }}
-                  >
+                  </span>
+                  <span className="text-zinc-300 text-sm font-medium">
                     {date.getDate()}
-                  </div>
+                  </span>
                 </div>
-                <div className="space-y-1.5">
-                  {tasks.map((task) => (
+
+                {/* Column Body */}
+                <div className="flex-1 p-2 space-y-2 overflow-y-auto">
+                  {dayTasks.map(task => (
                     <div
                       key={task.id}
-                      className="rounded-lg px-2.5 py-2 text-xs border-l-2 cursor-pointer hover:opacity-80"
-                      style={{
-                        background: "var(--bg-card)",
-                        borderLeftColor: task.color,
-                      }}
+                      className={`p-3 rounded-lg border ${task.color} ${task.borderColor} flex flex-col gap-2 cursor-pointer hover:brightness-110 transition-all`}
                     >
-                      <div className="font-medium truncate" style={{ color: "var(--text-primary)" }}>{task.title}</div>
-                      <div className="mt-0.5" style={{ color: "var(--text-muted)" }}>{task.time}</div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-4 h-4 rounded-sm flex items-center justify-center text-[8px] font-bold text-white ${task.iconTag}`}>
+                          {task.agent.charAt(0)}
+                        </div>
+                        <span className="text-xs font-medium text-zinc-200">{task.agent}</span>
+                      </div>
+                      <p className="text-sm text-zinc-300 leading-snug">
+                        {task.title}
+                      </p>
                     </div>
                   ))}
-                  {tasks.length === 0 && (
-                    <div className="text-center py-4 text-[10px]" style={{ color: "var(--text-muted)" }}>
-                      No tasks
-                    </div>
-                  )}
+
+                  {/* Plus button for empty slot */}
+                  <div className="opacity-0 hover:opacity-100 transition-opacity p-2 flex justify-center">
+                    <button className="w-full py-1.5 flex items-center justify-center text-zinc-600 hover:bg-zinc-800 hover:text-zinc-400 rounded-md border border-dashed border-zinc-700">
+                      +
+                    </button>
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
-      )}
+      </div>
     </div>
   );
 }

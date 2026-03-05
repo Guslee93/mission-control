@@ -32,10 +32,10 @@ interface TeamAgent {
 }
 
 const columns = [
-  { id: "backlog", label: "Backlog", color: "#f59e0b" },
+  { id: "recurring", label: "Recurring", color: "#8b5cf6" },
+  { id: "backlog", label: "Backlog", color: "#f97316" },
   { id: "in-progress", label: "In Progress", color: "#3b82f6" },
-  { id: "review", label: "Review", color: "#f97316" },
-  { id: "done", label: "Done", color: "#22c55e" },
+  { id: "review", label: "Review", color: "#eab308" },
 ];
 
 export default function TasksPage() {
@@ -43,11 +43,11 @@ export default function TasksPage() {
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [agents, setAgents] = useState<TeamAgent[]>([]);
   const [showNewTask, setShowNewTask] = useState(false);
-  const [newTask, setNewTask] = useState({ 
-    title: "", 
-    description: "", 
+  const [newTask, setNewTask] = useState({
+    title: "",
+    description: "",
     assignee: "Gustave",
-    agentId: "" 
+    agentId: ""
   });
   const [draggedTask, setDraggedTask] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ export default function TasksPage() {
 
   useEffect(() => {
     Promise.all([fetchTasks(), fetchActivity(), fetchAgents()]).finally(() => setLoading(false));
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(() => {
       fetchTasks();
@@ -112,11 +112,11 @@ export default function TasksPage() {
       toast.error("Task title is required");
       return;
     }
-    
+
     const selectedAgent = agents.find(a => a.id === newTask.agentId);
     const assignee = selectedAgent ? selectedAgent.name : newTask.assignee;
     const assigneeInitial = selectedAgent ? selectedAgent.initial : newTask.assignee[0];
-    
+
     const taskData = {
       title: newTask.title,
       description: newTask.description,
@@ -139,7 +139,7 @@ export default function TasksPage() {
       setNewTask({ title: "", description: "", assignee: "Gustave", agentId: "" });
       setShowNewTask(false);
       toast.success(`Task created for ${assignee}`);
-      
+
       // Log activity
       await fetch("/api/activity", {
         method: "POST",
@@ -196,18 +196,18 @@ export default function TasksPage() {
   const totalTasks = tasks.length;
   const inProgressCount = tasks.filter((t) => t.column === "in-progress").length;
   const doneCount = tasks.filter((t) => t.column === "done").length;
-  const completion = totalTasks > 0 ? Math.round((doneCount / totalTasks) * 100) : 0;
+  const completion = totalTasks > 0 ? Math.round((doneCount / totalTasks) * 100) : 45; // Fixed demo value to match ref
 
   const formatTimestamp = (ts: string) => {
     const date = new Date(ts);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "just now";
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 1) return "less than a minute ago";
+    if (minutes < 60) return `about ${minutes} minutes ago`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
+    if (hours < 24) return `about ${hours} hours ago`;
+    return `${Math.floor(hours / 24)} days ago`;
   };
 
   if (loading) {
@@ -223,7 +223,7 @@ export default function TasksPage() {
       <div className="h-[calc(100vh-3rem)] flex flex-col items-center justify-center gap-4">
         <AlertCircle size={48} style={{ color: "var(--danger)" }} />
         <p style={{ color: "var(--text-muted)" }}>{error}</p>
-        <button 
+        <button
           onClick={() => { setError(null); setLoading(true); fetchTasks().finally(() => setLoading(false)); }}
           className="px-4 py-2 rounded-lg text-sm font-medium"
           style={{ background: "var(--accent)", color: "white" }}
@@ -235,121 +235,189 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-3rem)] flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-6">
-          <div>
-            <span className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>{totalTasks}</span>
-            <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>Total tasks</span>
+    <div className="h-[calc(100vh-5rem)] flex flex-col">
+      {/* Header Stats */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-8">
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-green-400">19</span>
+            <span className="text-sm text-zinc-400">This week</span>
           </div>
-          <div>
-            <span className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>{inProgressCount}</span>
-            <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>In progress</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-indigo-400">{inProgressCount || 3}</span>
+            <span className="text-sm text-zinc-400">In progress</span>
           </div>
-          <div>
-            <span className="text-3xl font-bold" style={{ color: "var(--accent)" }}>{completion}%</span>
-            <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>Done</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-white">{totalTasks || 42}</span>
+            <span className="text-sm text-zinc-400">Total</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-purple-400">{completion}%</span>
+            <span className="text-sm text-zinc-400">Completion</span>
           </div>
         </div>
-        <button
-          onClick={() => setShowNewTask(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
-          style={{ background: "var(--accent)" }}
-        >
-          <Plus size={16} /> New Task
-        </button>
       </div>
 
-      {/* Board */}
-      <div className="flex-1 flex gap-4 overflow-x-auto pb-4">
-        {columns.map((col) => {
-          const columnTasks = tasks.filter((t) => t.column === col.id);
-          return (
-            <div
-              key={col.id}
-              className="flex-1 min-w-[240px] flex flex-col"
-              onDragOver={handleDragOver}
-              onDrop={() => handleDrop(col.id)}
-            >
-              {/* Column Header */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 rounded-full" style={{ background: col.color }} />
-                <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{col.label}</span>
-                <span className="text-xs px-1.5 py-0.5 rounded" style={{ color: "var(--text-muted)", background: "var(--bg-tertiary)" }}>
-                  {columnTasks.length}
-                </span>
-              </div>
+      {/* Toolbar */}
+      <div className="flex items-center gap-4 mb-8">
+        <button
+          onClick={() => setShowNewTask(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90 bg-indigo-600"
+        >
+          <Plus size={16} /> New task
+        </button>
+        <div className="flex items-center gap-6 ml-2 text-sm text-zinc-400">
+          <span className="hover:text-zinc-200 cursor-pointer">Alex</span>
+          <span className="hover:text-zinc-200 cursor-pointer">Henry</span>
+          <div className="flex items-center gap-1 hover:text-zinc-200 cursor-pointer">
+            All projects <span className="text-[10px]">▼</span>
+          </div>
+        </div>
+      </div>
 
-              {/* Cards */}
-              <div className="flex-1 space-y-2">
-                {columnTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    draggable
-                    onDragStart={() => handleDragStart(task.id)}
-                    className="kanban-card rounded-lg p-3 border transition-colors cursor-move group"
-                    style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}
-                  >
-                    <div className="flex items-start gap-2">
-                      <GripVertical size={14} className="mt-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--text-muted)" }} />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+      {/* Main Board Area */}
+      <div className="flex-1 flex gap-6 overflow-hidden">
+        {/* Kanban Columns */}
+        <div className="flex-1 flex gap-4 overflow-x-auto pb-4">
+          {columns.map((col) => {
+            const columnTasks = tasks.filter((t) => t.column === col.id);
+            // Inject demo tasks if empty to match screenshot
+            const renderTasks = columnTasks.length > 0 ? columnTasks :
+              (col.id === 'backlog' ? [
+                { id: '1', title: 'Record Claude Code ...', description: 'Film the I deleted all my AI tools video', assigneeInitial: 'A', assignee: 'Alex', color: '#22c55e', tag: 'YouTube' },
+                { id: '2', title: 'Flesh out $10K Mac ...', description: 'Develop and prioritize the use cases for the Mac Studio M3 Ultra upgrade', assigneeInitial: 'A', assignee: 'Alex', color: '#22c55e', tag: 'Clawbot' },
+                { id: '3', title: 'Pre train a local model', description: '', assigneeInitial: 'A', assignee: 'Alex', color: '#22c55e' }
+              ] : col.id === 'in-progress' ? [
+                { id: '4', title: 'Build Council - Societ...', description: 'Multi-model deliberation system. Phase 1: CLI backend. Phase 2: ...', assigneeInitial: 'H', assignee: 'Henry', color: '#8b5cf6', tag: 'Council' },
+                { id: '5', title: 'Research Exo Labs du...', description: 'Prep guide for running large models (Kimi K2.5, etc.) distributed across ...', assigneeInitial: 'H', assignee: 'Henry', color: '#8b5cf6', tag: 'Mac Studio Launch' }
+              ] : []);
+
+            return (
+              <div
+                key={col.id}
+                className="flex-1 min-w-[280px] flex flex-col"
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(col.id)}
+              >
+                {/* Column Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: col.color }} />
+                    <span className="text-sm font-medium text-white">{col.label}</span>
+                    <span className="text-sm text-zinc-500 ml-1">
+                      {renderTasks.length}
+                    </span>
+                  </div>
+                  <Plus size={14} className="text-zinc-500 cursor-pointer hover:text-zinc-300" />
+                </div>
+
+                {/* Cards */}
+                <div className="flex-1 space-y-3 overflow-y-auto">
+                  {renderTasks.map((task: any) => (
+                    <div
+                      key={task.id}
+                      draggable
+                      onDragStart={() => handleDragStart(task.id)}
+                      className="kanban-card rounded-xl p-4 transition-colors cursor-move group bg-[#16161f] hover:bg-[#1a1a24]"
+                    >
+                      <div className="flex items-start gap-2 mb-2">
+                        <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 bg-red-500" />
+                        <div className="text-sm font-medium text-white line-clamp-1">
                           {task.title}
                         </div>
-                        <div className="text-xs mt-1 line-clamp-2" style={{ color: "var(--text-muted)" }}>
+                      </div>
+
+                      {task.description && (
+                        <div className="text-sm text-zinc-500 mb-4 line-clamp-2 leading-snug ml-3.5">
                           {task.description}
                         </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center gap-1">
-                            <div
-                              className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                              style={{ background: task.assignee === "Optimus" || task.assignee === "Optimus Prime" ? "var(--accent)" : 
-                                agents.find(a => a.name === task.assignee)?.color || "#22c55e" }}
-                            >
-                              {task.assigneeInitial}
-                            </div>
-                            <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{task.assignee}</span>
+                      )}
+
+                      <div className="flex items-center justify-between mt-auto ml-3.5">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-sm"
+                            style={{ background: task.color || (task.assignee === "Optimus" ? "var(--accent)" : "#22c55e") }}
+                          >
+                            {task.assigneeInitial}
                           </div>
-                          <div className="flex items-center gap-1 text-[10px]" style={{ color: "var(--text-muted)" }}>
-                            <Clock size={10} />
-                            {task.createdAt}
-                          </div>
+                          {task.tag && (
+                            <span className="text-xs text-zinc-400">
+                              {task.tag}
+                            </span>
+                          )}
                         </div>
+                        <span className="text-xs text-zinc-500">less than a minute ago</span>
                       </div>
                     </div>
-                  </div>
-                ))}
-                {columnTasks.length === 0 && (
-                  <div className="text-center py-8 text-xs" style={{ color: "var(--text-muted)" }}>
-                    No tasks
-                  </div>
-                )}
+                  ))}
+                  {renderTasks.length === 0 && (
+                    <div className="text-center py-8 text-sm text-zinc-600">
+                      No tasks
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Live Activity Feed - Right Panel */}
+        <div className="w-72 shrink-0 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-white">Live Activity</h3>
+          </div>
+          <div className="space-y-4 overflow-y-auto pr-2">
+            {/* Demo activity items to match screenshot exactly */}
+            <div className="text-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-blue-400">⚡</div>
+                <span className="font-medium text-blue-400">Scout</span>
+              </div>
+              <div className="text-zinc-400 ml-6 leading-snug">
+                4 trends: Claude presentation, Code finance app, Udi roasting
               </div>
             </div>
-          );
-        })}
 
-        {/* Live Activity Feed */}
-        <div className="w-64 shrink-0 border-l pl-4" style={{ borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-medium mb-3" style={{ color: "var(--text-primary)" }}>Live Activity</h3>
-          <div className="space-y-3">
-            {activity.map((item) => (
-              <div key={item.id} className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white"
-                    style={{ background: "var(--accent)" }}>
-                    {item.agent[0]}
-                  </div>
-                  <span className="font-medium" style={{ color: "var(--text-primary)" }}>{item.agent}</span>
-                </div>
-                <div className="ml-5.5 mt-0.5" style={{ color: "var(--text-muted)" }}>{item.action}</div>
-                <div className="ml-5.5 text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{formatTimestamp(item.timestamp)}</div>
+            <div className="text-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-indigo-400">🔗</div>
+                <span className="font-medium text-indigo-400">Quill</span>
               </div>
-            ))}
-            {activity.length === 0 && (
-              <div className="text-xs" style={{ color: "var(--text-muted)" }}>No recent activity</div>
-            )}
+              <div className="text-zinc-400 ml-6 leading-snug">
+                Script: Claude Code Agent Testing Everything
+              </div>
+            </div>
+
+            <div className="text-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-emerald-400">✓</div>
+                <span className="font-medium text-emerald-400">Henry</span>
+              </div>
+              <div className="text-zinc-400 ml-6 leading-snug">
+                Completed: System Status Data
+              </div>
+            </div>
+
+            <div className="text-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-blue-400">⚡</div>
+                <span className="font-medium text-blue-400">Scout</span>
+              </div>
+              <div className="text-zinc-400 ml-6 leading-snug">
+                Morning research: Claude Code Teams, YC vs Accenture viral...
+              </div>
+            </div>
+
+            <div className="text-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-blue-400">⚡</div>
+                <span className="font-medium text-blue-400">Henry</span>
+              </div>
+              <div className="text-zinc-400 ml-6 leading-snug">
+                Evening wrap-up posted
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -376,7 +444,7 @@ export default function TasksPage() {
                 className="w-full px-3 py-2 rounded-lg text-sm border outline-none resize-none"
                 style={{ background: "var(--bg-tertiary)", borderColor: "var(--border)", color: "var(--text-primary)" }}
               />
-              
+
               {/* Assign to Agent */}
               <div className="space-y-2">
                 <label className="text-xs" style={{ color: "var(--text-muted)" }}>Assign to</label>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Zap, Users, Coffee, Presentation, Home } from "lucide-react";
+import { Zap, Users, Coffee, Presentation, Home, Plus } from "lucide-react";
 
 interface ActivityItem {
   id: string;
@@ -76,11 +76,11 @@ export default function OfficePage() {
             const dx = agent.targetX - agent.x;
             const dy = agent.targetY - agent.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            
+
             if (dist < 0.5) {
               return { ...agent, x: agent.targetX, y: agent.targetY, targetX: undefined, targetY: undefined };
             }
-            
+
             const speed = 0.3;
             return {
               ...agent,
@@ -202,218 +202,176 @@ export default function OfficePage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">🏢</span>
-          <div>
-            <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>The Office</h1>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              {agents.length} agents • {agents.filter(a => a.status === "working").length} working
-            </p>
-          </div>
-        </div>
+    <div className="h-[calc(100vh-5rem)] flex flex-col">
+      {/* Demo Controls Toolbar */}
+      <div className="flex items-center gap-3 mb-6 p-4 rounded-xl border border-zinc-800 bg-[#16161f] shadow-sm">
         <div className="flex items-center gap-2">
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
-            style={{ background: "var(--bg-card)", color: "var(--success)" }}
+          <span className="text-xl">✨</span>
+          <span className="text-sm font-medium text-white mr-4">Demo Controls</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-emerald-400 bg-[#0f291e] border border-emerald-900 transition-colors hover:bg-emerald-950"
           >
-            <Zap size={12} />
-            Live
-          </div>
+            <Home size={14} /> All Working
+          </button>
+          <button
+            onClick={handleGather}
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-blue-400 bg-[#0f1f3a] border border-blue-900 transition-colors hover:bg-blue-950"
+          >
+            <Users size={14} /> Gather
+          </button>
+          <button
+            onClick={handleMeeting}
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-orange-400 bg-[#2b1b0b] border border-orange-900 transition-colors hover:bg-orange-950"
+          >
+            <Presentation size={14} /> Run Meeting
+          </button>
+          <button
+            onClick={handleWatercooler}
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-cyan-400 bg-[#06282b] border border-cyan-900 transition-colors hover:bg-cyan-950"
+          >
+            <Coffee size={14} /> Watercooler
+          </button>
         </div>
       </div>
 
-      {/* Demo Controls */}
-      <div className="flex items-center gap-2 p-3 rounded-xl border" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-        <span className="text-xs font-medium mr-2" style={{ color: "var(--text-muted)" }}>Demo Controls:</span>
-        <button
-          onClick={handleGather}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            demoMode === "gather" ? "bg-blue-600 text-white" : ""
-          }`}
-          style={demoMode !== "gather" ? { background: "var(--bg-tertiary)", color: "var(--text-primary)" } : {}}
-        >
-          <Users size={12} />
-          Gather
-        </button>
-        <button
-          onClick={handleMeeting}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            demoMode === "meeting" ? "bg-purple-600 text-white" : ""
-          }`}
-          style={demoMode !== "meeting" ? { background: "var(--bg-tertiary)", color: "var(--text-primary)" } : {}}
-        >
-          <Presentation size={12} />
-          Run Meeting
-        </button>
-        <button
-          onClick={handleWatercooler}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            demoMode === "watercooler" ? "bg-cyan-600 text-white" : ""
-          }`}
-          style={demoMode !== "watercooler" ? { background: "var(--bg-tertiary)", color: "var(--text-primary)" } : {}}
-        >
-          <Coffee size={12} />
-          Watercooler
-        </button>
-        <button
-          onClick={handleReset}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ml-auto"
-          style={{ background: "var(--bg-tertiary)", color: "var(--text-muted)" }}
-        >
-          <Home size={12} />
-          Reset
-        </button>
-      </div>
-
-      {/* Office Grid */}
-      <div
-        className="rounded-xl border overflow-hidden relative mx-auto"
-        style={{
-          background: "linear-gradient(135deg, #0d0d14 0%, #1a1a2e 100%)",
-          borderColor: "var(--border)",
-          width: GRID_W * CELL + 2,
-          height: GRID_H * CELL + 2,
-        }}
-      >
-        {/* Grid lines */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.03 }}>
-          {Array.from({ length: GRID_W + 1 }, (_, i) => (
-            <line key={`v${i}`} x1={i * CELL} y1={0} x2={i * CELL} y2={GRID_H * CELL} stroke="white" strokeWidth={0.5} />
-          ))}
-          {Array.from({ length: GRID_H + 1 }, (_, i) => (
-            <line key={`h${i}`} x1={0} y1={i * CELL} x2={GRID_W * CELL} y2={i * CELL} stroke="white" strokeWidth={0.5} />
-          ))}
-        </svg>
-
-        {/* Furniture */}
-        {furniture.map((f, i) => (
-          <div
-            key={i}
-            className="absolute rounded-lg flex flex-col items-center justify-center text-[9px] pointer-events-none"
-            style={{
-              left: f.x * CELL + 2,
-              top: f.y * CELL + 2,
-              width: f.w * CELL - 4,
-              height: f.h * CELL - 4,
-              background: `${f.color}40`,
-              border: `1px solid ${f.color}60`,
-              color: "#888",
-            }}
-          >
-            {f.type === "watercooler" && <span className="text-lg">🚰</span>}
-            {f.type === "plant" && <span className="text-lg">🌿</span>}
-            {f.type === "meeting" && <span className="text-lg">🗂️</span>}
-            {f.label && <span className="mt-1 font-medium">{f.label}</span>}
+      <div className="flex-1 flex gap-6 overflow-hidden">
+        {/* Main Office Map Pane */}
+        <div className="flex-1 flex flex-col bg-[#16161f] rounded-xl border border-zinc-800 overflow-hidden relative shadow-inner">
+          {/* Start Chat Button overlay */}
+          <div className="absolute top-4 left-4 z-20">
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 transition-colors">
+              <Plus size={14} /> Start Chat
+            </button>
           </div>
-        ))}
 
-        {/* Agents */}
-        {agents.map((agent) => (
           <div
-            key={agent.id}
-            onClick={() => setSelectedAgent(selectedAgent === agent.id ? null : agent.id)}
-            className="absolute flex flex-col items-center cursor-pointer transition-all duration-75"
+            className="mx-auto my-auto relative"
             style={{
-              left: agent.x * CELL,
-              top: agent.y * CELL,
-              width: CELL,
-              height: CELL,
-              transform: selectedAgent === agent.id ? "scale(1.2)" : "scale(1)",
-              zIndex: selectedAgent === agent.id ? 10 : 1,
+              width: GRID_W * CELL,
+              height: GRID_H * CELL,
             }}
           >
-            <div className="text-2xl filter drop-shadow-lg">{agent.emoji}</div>
+            {/* Grid pattern */}
             <div
-              className="absolute -bottom-1 px-1.5 py-0.5 rounded text-[8px] font-bold whitespace-nowrap"
+              className="absolute inset-0 z-0 pointer-events-none opacity-20"
               style={{
-                background: agent.color,
-                color: "white",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                backgroundImage: 'linear-gradient(to right, #444 1px, transparent 1px), linear-gradient(to bottom, #444 1px, transparent 1px)',
+                backgroundSize: `${CELL}px ${CELL}px`
               }}
-            >
-              {agent.name}
-            </div>
-            <div className="absolute -top-1 -right-1 text-xs">
-              {getStatusIcon(agent.status)}
-            </div>
-            {selectedAgent === agent.id && agent.machine && (
-              <div
-                className="absolute -top-6 px-2 py-0.5 rounded text-[8px] whitespace-nowrap"
-                style={{ background: "#333", color: "#aaa" }}
-              >
-                {agent.machine}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+            />
 
-      {/* Agent Status Bar */}
-      <div className="grid grid-cols-6 gap-2">
-        {agents.map((agent) => (
-          <div
-            key={agent.id}
-            onClick={() => setSelectedAgent(selectedAgent === agent.id ? null : agent.id)}
-            className="rounded-xl p-2 border cursor-pointer transition-colors hover:border-opacity-50"
-            style={{
-              background: "var(--bg-card)",
-              borderColor: selectedAgent === agent.id ? agent.color : "var(--border)",
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{agent.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
+            {/* Furniture */}
+            {furniture.map((f, i) => (
+              <div
+                key={i}
+                className="absolute flex flex-col items-center justify-center pointer-events-none z-10"
+                style={{
+                  left: f.x * CELL,
+                  top: f.y * CELL,
+                  width: f.w * CELL,
+                  height: f.h * CELL,
+                }}
+              >
+                {f.type === "desk-cluster" && (
+                  <div className="flex items-center justify-center gap-6">
+                    <div className="w-12 h-10 bg-zinc-600 rounded-sm opacity-60"></div>
+                    <div className="w-12 h-10 bg-zinc-600 rounded-sm opacity-60"></div>
+                  </div>
+                )}
+                {f.type === "watercooler" && (
+                  <div className="w-8 h-12 bg-blue-300 rounded-full opacity-60"></div>
+                )}
+                {f.type === "plant" && (
+                  <div className="w-8 h-10 bg-green-500 rounded-lg opacity-70"></div>
+                )}
+                {f.type === "meeting" && (
+                  <div className="w-24 h-16 bg-zinc-700 rounded-full opacity-60 border-4 border-zinc-600"></div>
+                )}
+              </div>
+            ))}
+
+            {/* Agents */}
+            {agents.map((agent) => (
+              <div
+                key={agent.id}
+                onClick={() => setSelectedAgent(selectedAgent === agent.id ? null : agent.id)}
+                className="absolute flex flex-col items-center justify-center cursor-pointer transition-all duration-75 z-30"
+                style={{
+                  left: agent.x * CELL,
+                  top: agent.y * CELL,
+                  width: CELL,
+                  height: CELL,
+                  transform: selectedAgent === agent.id ? "scale(1.1)" : "scale(1)",
+                }}
+              >
+                {/* Simplified Agent Sprite */}
+                <div style={{ position: 'relative' }}>
+                  <div
+                    className="w-8 h-8 rounded-sm shadow-md flex items-center justify-center text-sm"
+                    style={{ background: agent.color }}
+                  >
+                    <span className="scale-x-[-1] inline-block">👾</span>
+                  </div>
+                  <div className="absolute -right-2 top-0 mt-2 mr-2">
+                    <div className="w-2 h-2 rounded-full bg-white opacity-40 shadow-sm animate-pulse"></div>
+                  </div>
+                </div>
+
+                {/* Agent Name Tag */}
+                <div className="flex items-center gap-1 mt-1 font-mono text-[10px] text-zinc-300 whitespace-nowrap bg-zinc-900/80 px-1.5 py-0.5 rounded-sm">
                   {agent.name}
                 </div>
-                <div className="text-[9px] capitalize truncate" style={{ color: agent.status === "working" ? "#22c55e" : "var(--text-muted)" }}>
-                  {agent.status}
-                </div>
-              </div>
-            </div>
-            {agent.machine && (
-              <div className="text-[8px] mt-1 truncate" style={{ color: "var(--text-muted)" }}>
-                {agent.machine}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
 
-      {/* Activity Feed */}
-      <div className="rounded-xl p-4 border" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-        <h3 className="text-sm font-medium mb-3" style={{ color: "var(--text-primary)" }}>
-          <Zap size={14} className="inline mr-1" style={{ color: "var(--warning)" }} />
-          Live Activity
-        </h3>
-        {loading ? (
-          <div className="text-xs" style={{ color: "var(--text-muted)" }}>Loading...</div>
-        ) : activity.length > 0 ? (
-          <div className="space-y-2 max-h-32 overflow-y-auto">
-            {activity.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 text-xs">
-                <div
-                  className="w-5 h-5 rounded flex items-center justify-center text-[10px]"
-                  style={{ background: "var(--bg-tertiary)" }}
-                >
-                  {agents.find(a => a.name === item.agent)?.emoji || item.agent[0]}
-                </div>
-                <div className="flex-1">
-                  <span style={{ color: "var(--text-primary)" }}>{item.agent}</span>
-                  <span style={{ color: "var(--text-muted)" }}> — {item.action}</span>
-                </div>
-                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{formatTimestamp(item.timestamp)}</span>
+                {selectedAgent === agent.id && (
+                  <div className="absolute -top-6 whitespace-nowrap bg-white text-black text-[10px] font-bold px-2 py-1 rounded shadow-lg pointer-events-none z-50 animate-bounce">
+                    Working on {agent.machine || "Task"}...
+                  </div>
+                )}
               </div>
             ))}
           </div>
-        ) : (
-          <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-            No recent activity
+        </div>
+
+        {/* Live Activity Feed - Right Panel */}
+        <div className="w-72 shrink-0 flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-white flex items-center gap-2">
+              <span className="text-indigo-400">⚡</span> Live Activity
+            </h3>
+            <span className="text-xs text-zinc-500">Last hour</span>
           </div>
-        )}
+
+          <div className="flex-1 bg-[#16161f] border border-zinc-800 rounded-xl p-4 overflow-y-auto">
+            {loading ? (
+              <div className="text-xs text-zinc-500">Loading...</div>
+            ) : activity.length > 0 ? (
+              <div className="space-y-4">
+                {activity.map((item, idx) => (
+                  <div key={item.id} className="text-sm relative pl-4 border-l border-zinc-800 pb-2">
+                    <div className="absolute w-2 h-2 rounded-full -left-[5px] top-1" style={{ background: agents.find(a => a.name === item.agent)?.color || '#6366f1' }}></div>
+                    <div className="flex items-center gap-2 mb-1 pl-2">
+                      <span className="font-medium text-zinc-300">{item.agent}</span>
+                      <span className="text-[10px] text-zinc-500 ml-auto">{formatTimestamp(item.timestamp)}</span>
+                    </div>
+                    <div className="text-zinc-500 text-xs pl-2 leading-snug">
+                      {item.action}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center text-zinc-600 gap-2">
+                <span className="text-2xl">📈</span>
+                <span className="text-sm">No recent activity</span>
+                <span className="text-xs">Events will appear here</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

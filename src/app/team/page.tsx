@@ -23,7 +23,6 @@ const mission = "Build a sharp, disciplined SaaS business — leveraging AI agen
 export default function TeamPage() {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
-  const [spawning, setSpawning] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTeam();
@@ -43,242 +42,137 @@ export default function TeamPage() {
     }
   }
 
-  async function spawnAgent(agentId: string) {
-    setSpawning(agentId);
-    try {
-      const res = await fetch("/api/agents", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId, action: "spawn" }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        // Update local state
-        setTeam(team.map((t) => 
-          t.id === agentId ? { ...t, status: "online" } : t
-        ));
-      } else {
-        const error = await res.json();
-        console.error("Failed to spawn agent:", error);
-        alert("Failed to spawn agent. Check console for details.");
-      }
-    } catch (error) {
-      console.error("Error spawning agent:", error);
-      alert("Error spawning agent. Check console for details.");
-    } finally {
-      setSpawning(null);
-    }
-  }
-
-  const onlineCount = team.filter((t) => t.status === "online").length;
-  const standbyCount = team.filter((t) => t.status === "standby").length;
-  const humanCount = team.filter((t) => t.type === "human").length;
-  const agentCount = team.filter((t) => t.type === "agent").length;
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "online":
-        return <Circle size={10} className="fill-current" style={{ color: "#22c55e" }} />;
-      case "standby":
-        return <Pause size={10} style={{ color: "#f59e0b" }} />;
-      default:
-        return <Circle size={10} style={{ color: "#71717a" }} />;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "online":
-        return "Online";
-      case "standby":
-        return "Standby";
-      default:
-        return "Offline";
-    }
-  };
-
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Mission Statement */}
-      <div
-        className="rounded-xl p-6 text-center border"
-        style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}
-      >
-        <p className="text-sm italic leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-          &ldquo;{mission}&rdquo;
+    <div className="max-w-4xl mx-auto space-y-12 pb-20 pt-8 flex flex-col items-center">
+      {/* Top Banner section */}
+      <div className="text-center max-w-2xl w-full flex flex-col items-center">
+        { /* Top Pill Banner */}
+        <div className="inline-block px-8 py-3 rounded-full mb-8 bg-[#0a183d] border border-blue-900/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+          <p className="text-blue-300 text-sm font-medium italic">
+            &ldquo;An autonomous organization of AI agents that does work for me and produces value 24/7&rdquo;
+          </p>
+        </div>
+
+        <h1 className="text-4xl font-bold text-white mb-6 tracking-tight">Meet the Team</h1>
+
+        <p className="text-zinc-400 text-sm mb-4">
+          9 AI agents across 3 machines, each with a real role and a real personality.
+        </p>
+        <p className="text-zinc-500 text-sm leading-relaxed max-w-xl mx-auto">
+          We wanted to see what happens when AI doesn&apos;t just answer questions — but actually runs a
+          company. Research markets. Write content. Post on social media. Ship products. All without being told what to do.
         </p>
       </div>
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Users size={24} style={{ color: "var(--accent)" }} />
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Your SaaS Team</h1>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              {loading ? "—" : `${team.length} members`} • {loading ? "—" : `${humanCount} human`} • {loading ? "—" : `${agentCount} AI agents`} • {loading ? "—" : `${onlineCount} online`}
-            </p>
-          </div>
-        </div>
-        <button
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white opacity-50 cursor-not-allowed"
-          style={{ background: "var(--accent)" }}
-          title="Coming soon"
-        >
-          <Plus size={16} /> Hire Agent
-        </button>
-      </div>
+      {/* Organizational Hierarchy */}
+      <div className="w-full max-w-2xl space-y-8 relative">
 
-      {/* Team Grid */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 size={32} className="animate-spin" style={{ color: "var(--text-muted)" }} />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {team.map((member) => (
-            <div
-              key={member.id}
-              className="rounded-xl p-6 border transition-colors hover:border-opacity-50"
-              style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className="w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold text-white shrink-0"
-                  style={{ background: member.color }}
-                >
-                  {member.initial}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-                      {member.name}
-                    </h3>
-                    {member.type === "agent" && (
-                      <span
-                        className="px-2 py-0.5 rounded text-[10px] font-medium"
-                        style={{ background: "#6366f120", color: "#6366f1" }}
-                      >
-                        AI Agent
-                      </span>
-                    )}
-                    {member.type === "human" && (
-                      <span
-                        className="px-2 py-0.5 rounded text-[10px] font-medium"
-                        style={{ background: "#22c55e20", color: "#22c55e" }}
-                      >
-                        Human
-                      </span>
-                    )}
-                    {member.device && (
-                      <span
-                        className="px-2 py-0.5 rounded text-[10px]"
-                        style={{ background: "var(--bg-tertiary)", color: "var(--text-muted)" }}
-                      >
-                        {member.device}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-sm font-medium mt-0.5" style={{ color: member.color }}>
-                    {member.role}
-                  </div>
-                  <p className="text-xs mt-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                    {member.description}
-                  </p>
-
-                  {/* Specialties */}
-                  {member.specialties && member.specialties.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {member.specialties.map((spec) => (
-                        <span
-                          key={spec}
-                          className="px-2 py-0.5 rounded text-[10px] capitalize"
-                          style={{ background: "var(--bg-tertiary)", color: "var(--text-muted)" }}
-                        >
-                          {spec.replace("-", " ")}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {member.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-0.5 rounded text-[10px]"
-                        style={{ background: "var(--bg-tertiary)", color: "var(--text-muted)" }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-1.5 px-2 py-1 rounded text-xs" style={{ background: "var(--bg-tertiary)" }}>
-                    {getStatusIcon(member.status)}
-                    <span style={{ color: member.status === "online" ? "#22c55e" : member.status === "standby" ? "#f59e0b" : "var(--text-muted)" }}>
-                      {getStatusText(member.status)}
-                    </span>
-                  </div>
-
-                  {member.type === "agent" && member.status === "standby" && (
-                    <button
-                      onClick={() => spawnAgent(member.id)}
-                      disabled={spawning === member.id}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
-                      style={{ background: "var(--accent)" }}
-                    >
-                      {spawning === member.id ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : (
-                        <Play size={12} />
-                      )}
-                      {spawning === member.id ? "Starting..." : "Spawn"}
-                    </button>
-                  )}
-
-                  {member.type === "agent" && member.status === "online" && (
-                    <button
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border"
-                      style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}
-                    >
-                      <Zap size={12} style={{ color: "#22c55e" }} />
-                      Active
-                    </button>
-                  )}
-                </div>
+        {/* Henry (Chief of Staff) */}
+        <div className="w-full bg-[#111118] border border-indigo-500/30 rounded-2xl p-6 shadow-[0_0_15px_rgba(99,102,241,0.05)] relative overflow-hidden group hover:border-indigo-500/50 transition-colors">
+          <div className="flex gap-5">
+            <div className="w-16 h-16 rounded-xl bg-[#1e2336] flex items-center justify-center text-3xl shadow-inner shrink-0 relative">
+              🦉
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-white mb-0.5">Henry</h3>
+              <div className="text-zinc-400 text-sm mb-3 font-medium">Chief of Staff</div>
+              <p className="text-zinc-500 text-sm leading-relaxed mb-4 max-w-sm">
+                Coordinates, delegates, keeps the ship tight. The first point of contact between boss and machine.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {["Orchestration", "Clarity", "Delegation"].map(tag => (
+                  <span key={tag} className="px-2.5 py-0.5 bg-blue-950/40 text-blue-400 text-xs rounded-md border border-blue-900/40">
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
-          ))}
+          </div>
+          <button className="absolute bottom-6 right-6 text-xs font-semibold text-zinc-600 hover:text-zinc-400 tracking-wider">
+            ROLE CARD →
+          </button>
         </div>
-      )}
 
-      {/* Agent Guide */}
-      <div className="rounded-xl p-6 border" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-        <h3 className="text-sm font-medium mb-4" style={{ color: "var(--text-primary)" }}>
-          How to Use Your AI Team
-        </h3>
-        <div className="grid grid-cols-2 gap-4 text-xs" style={{ color: "var(--text-secondary)" }}>
-          <div>
-            <strong style={{ color: "var(--text-primary)" }}>Spawn Agents</strong>
-            <p className="mt-1">Click &ldquo;Spawn&rdquo; to activate an agent. Each runs as a separate OpenClaw session with specialized context.</p>
+        {/* Divider / Department label */}
+        <div className="flex items-center justify-center gap-4 relative py-2">
+          <div className="h-px bg-zinc-800 flex-1"></div>
+          <div className="text-xs font-semibold tracking-widest text-zinc-500 uppercase flex items-center gap-2">
+            <span>🚩</span> OPERATIONS (Mac Studio 2)
           </div>
-          <div>
-            <strong style={{ color: "var(--text-primary)" }}>Assign Work</strong>
-            <p className="mt-1">Create tasks and assign them to specific agents. They&apos;ll work in their own sessions and report back.</p>
+          <div className="h-px bg-zinc-800 flex-1"></div>
+
+          {/* Vertical line connecting up to Henry */}
+          <div className="absolute top-[-32px] left-1/2 w-px h-[39px] bg-zinc-800 -translate-x-1/2 z-0"></div>
+          {/* Vertical line connecting down to grid */}
+          <div className="absolute bottom-[-16px] left-1/2 w-px h-[16px] bg-zinc-800 -translate-x-1/2 z-0"></div>
+        </div>
+
+        {/* Operations Grid */}
+        <div className="grid grid-cols-2 gap-4">
+
+          {/* Charlie */}
+          <div className="bg-[#111118] border border-blue-500/30 rounded-2xl p-6 relative group hover:border-blue-500/50 transition-colors h-full flex flex-col">
+            <div className="flex gap-4 mb-3">
+              <div className="w-12 h-12 rounded-xl bg-[#162136] flex items-center justify-center text-2xl shadow-inner shrink-0 relative">
+                🤖
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white mb-0.5">Charlie</h3>
+                <div className="text-zinc-400 text-xs font-medium">Infrastructure Engineer</div>
+              </div>
+            </div>
+            <p className="text-zinc-500 text-sm leading-relaxed mb-5 flex-1">
+              Infrastructure and automation specialist.
+            </p>
+            <div className="flex flex-wrap gap-1.5 mb-6">
+              {["coding", "infrastructure", "automation"].map(tag => (
+                <span key={tag} className="px-2 py-0.5 bg-blue-950/40 text-blue-400 text-[10px] rounded border border-blue-900/40">
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <button className="text-xs font-semibold text-zinc-600 hover:text-zinc-400 tracking-wider self-end mt-auto">
+              ROLE CARD →
+            </button>
           </div>
-          <div>
-            <strong style={{ color: "var(--text-primary)" }}>Collaborate</strong>
-            <p className="mt-1">Agents can message each other. Code Ninja can ask Design Guru for UI specs, etc.</p>
+
+          {/* Ralph */}
+          <div className="bg-[#181410] border border-orange-500/30 rounded-2xl p-6 relative group hover:border-orange-500/50 transition-colors h-full flex flex-col">
+            <div className="flex gap-4 mb-3">
+              <div className="w-12 h-12 rounded-xl bg-[#261c14] flex items-center justify-center text-2xl shadow-inner shrink-0 relative">
+                🔧
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white mb-0.5">Ralph</h3>
+                <div className="text-zinc-400 text-xs font-medium">Foreman / QA Manager</div>
+              </div>
+            </div>
+            <p className="text-zinc-500 text-sm leading-relaxed mb-5 flex-1">
+              Checks the work, signs off or sends it back. No-nonsense quality control.
+            </p>
+            <div className="flex flex-wrap gap-1.5 mb-6">
+              {["Quality Assurance", "Monitoring", "Demo Recording"].map(tag => (
+                <span key={tag} className="px-2 py-0.5 bg-orange-950/40 text-orange-400 text-[10px] rounded border border-orange-900/40">
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <button className="text-xs font-semibold text-zinc-600 hover:text-zinc-400 tracking-wider self-end mt-auto">
+              ROLE CARD →
+            </button>
           </div>
-          <div>
-            <strong style={{ color: "var(--text-primary)" }}>Review Output</strong>
-            <p className="mt-1">Agents work in their own directories. Check their work before deploying to production.</p>
+
+        </div>
+
+        {/* Bottom Signal Divider */}
+        <div className="flex items-center justify-center pt-16">
+          <div className="text-[10px] font-mono tracking-widest text-[#22c55e] flex items-center gap-3">
+            <span>↓ INPUT SIGNAL</span>
+            <div className="w-32 h-px bg-zinc-800"></div>
+            <span className="text-blue-500">OUTPUT ACTION ↓</span>
           </div>
         </div>
+
       </div>
     </div>
   );
